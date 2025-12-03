@@ -63,12 +63,40 @@ const recordAction = (toolName, parameters) => {
     }
 };
 
-// Helper to check for interrupt
-const checkInterrupt = () => {
-    if (state.interruptRequested) {
-        state.interruptRequested = false;
-        throw new Error('Action interrupted by user');
+// Helper function to safely substitute variables in parameters
+// This escapes special characters to prevent JSON/regex injection
+const substituteVariables = (params, variables) => {
+    if (!variables || Object.keys(variables).length === 0) {
+        return params;
     }
+    
+    // Deep clone the parameters
+    const result = JSON.parse(JSON.stringify(params));
+    
+    // Recursively substitute variables in string values
+    const substitute = (obj) => {
+        if (typeof obj === 'string') {
+            let value = obj;
+            for (const [key, replacement] of Object.entries(variables)) {
+                // Only allow alphanumeric keys for safety
+                if (/^[a-zA-Z0-9_]+$/.test(key)) {
+                    value = value.split(`{{${key}}}`).join(replacement);
+                }
+            }
+            return value;
+        } else if (Array.isArray(obj)) {
+            return obj.map(item => substitute(item));
+        } else if (obj !== null && typeof obj === 'object') {
+            const newObj = {};
+            for (const [key, val] of Object.entries(obj)) {
+                newObj[key] = substitute(val);
+            }
+            return newObj;
+        }
+        return obj;
+    };
+    
+    return substitute(result);
 };
 
 // Common schemas
@@ -784,14 +812,10 @@ server.tool(
                     };
                 }
                 
-                // Substitute variables in parameters
-                let params = JSON.stringify(action.parameters);
-                for (const [key, value] of Object.entries(variables)) {
-                    params = params.replace(new RegExp(`{{${key}}}`, 'g'), value);
-                }
-                params = JSON.parse(params);
+                // Substitute variables in parameters using safe method
+                const params = substituteVariables(action.parameters, variables);
                 
-                // Execute the action (simplified - in practice would need to call the actual tool)
+                // Execute the action
                 try {
                     const result = await executeAction(action.toolName, params);
                     results.push(`✓ ${action.toolName}: ${result}`);

@@ -253,6 +253,19 @@ export class MemoryStore {
         // Filter mappings where the URL matches the pattern
         return allMappings.filter(mapping => {
             try {
+                // Limit pattern length to prevent ReDoS
+                if (mapping.site_pattern.length > 200) {
+                    return url.includes(mapping.site_pattern.substring(0, 200));
+                }
+                
+                // Try regex match with timeout protection via pattern simplicity check
+                // Reject patterns with excessive quantifiers or nested groups
+                const dangerousPattern = /(\+\+|\*\*|\{\d+,\d*\}\+|\{\d+,\d*\}\*|\(\?[^)]*\)\+|\(\?[^)]*\)\*)/;
+                if (dangerousPattern.test(mapping.site_pattern)) {
+                    // Fall back to substring match for complex patterns
+                    return url.includes(mapping.site_pattern);
+                }
+                
                 const pattern = new RegExp(mapping.site_pattern);
                 return pattern.test(url);
             } catch {
@@ -293,11 +306,20 @@ export class MemoryStore {
             SELECT * FROM execution_history
             ORDER BY executed_at DESC
             LIMIT ?
-        `).all(limit).map(entry => ({
-            ...entry,
-            parameters: JSON.parse(entry.parameters || '{}'),
-            success: entry.success === 1
-        }));
+        `).all(limit).map(entry => {
+            let parameters = {};
+            try {
+                parameters = JSON.parse(entry.parameters || '{}');
+            } catch {
+                // Handle corrupted JSON data gracefully
+                parameters = { _error: 'Invalid JSON in stored parameters' };
+            }
+            return {
+                ...entry,
+                parameters,
+                success: entry.success === 1
+            };
+        });
     }
 
     /**
