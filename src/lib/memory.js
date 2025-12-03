@@ -11,6 +11,9 @@ import fs from 'fs';
 // Default database path in user's home directory
 const DEFAULT_DB_PATH = path.join(os.homedir(), '.mcp-selenium', 'memory.db');
 
+// Maximum pattern length for ReDoS protection
+const MAX_PATTERN_LENGTH = 200;
+
 /**
  * Memory store for learned actions and sequences
  */
@@ -254,8 +257,8 @@ export class MemoryStore {
         return allMappings.filter(mapping => {
             try {
                 // Limit pattern length to prevent ReDoS
-                if (mapping.site_pattern.length > 200) {
-                    return url.includes(mapping.site_pattern.substring(0, 200));
+                if (mapping.site_pattern.length > MAX_PATTERN_LENGTH) {
+                    return url.includes(mapping.site_pattern.substring(0, MAX_PATTERN_LENGTH));
                 }
                 
                 // Try regex match with timeout protection via pattern simplicity check
@@ -310,9 +313,13 @@ export class MemoryStore {
             let parameters = {};
             try {
                 parameters = JSON.parse(entry.parameters || '{}');
-            } catch {
-                // Handle corrupted JSON data gracefully
-                parameters = { _error: 'Invalid JSON in stored parameters' };
+            } catch (parseError) {
+                // Handle corrupted JSON data gracefully with debug info
+                parameters = { 
+                    _error: 'Invalid JSON in stored parameters',
+                    _entryId: entry.id,
+                    _rawPreview: (entry.parameters || '').substring(0, 50)
+                };
             }
             return {
                 ...entry,
