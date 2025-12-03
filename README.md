@@ -2,7 +2,7 @@
 
 A Model Context Protocol (MCP) server implementation for Selenium WebDriver, enabling browser automation through standardized MCP clients. This enhanced version includes **memory and learning capabilities** that allow LLMs to record, remember, and replay browser automation workflows.
 
-> **Note**: This is a fork of [@angiejones/mcp-selenium](https://github.com/angiejones/mcp-selenium) with additional features for autonomous operation and persistent memory.
+> **Note**: This is a fork of [mcp-selenium by @angiejones](https://github.com/angiejones/mcp-selenium) with additional features for autonomous operation and persistent memory.
 
 ## Video Demo (Click to Watch)
 
@@ -44,7 +44,7 @@ A Model Context Protocol (MCP) server implementation for Selenium WebDriver, ena
 The easiest way to use MCP Selenium is with NPX, which requires no installation:
 
 ```bash
-npx -y @angiejones/mcp-selenium
+npx -y @groxaxo/mcp-selenium
 ```
 
 ### Global Installation
@@ -52,7 +52,7 @@ npx -y @angiejones/mcp-selenium
 For faster startup and offline use, install globally:
 
 ```bash
-npm install -g @angiejones/mcp-selenium
+npm install -g @groxaxo/mcp-selenium
 ```
 
 Then run:
@@ -63,10 +63,10 @@ mcp-selenium
 
 ### Installing via Smithery
 
-To install for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@angiejones/mcp-selenium):
+To install for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@groxaxo/mcp-selenium):
 
 ```bash
-npx -y @smithery/cli install @angiejones/mcp-selenium --client claude
+npx -y @smithery/cli install @groxaxo/mcp-selenium --client claude
 ```
 
 ---
@@ -79,14 +79,14 @@ npx -y @smithery/cli install @angiejones/mcp-selenium --client claude
 Copy and paste the link below into a browser address bar to add this extension to Goose Desktop:
 
 ```
-goose://extension?cmd=npx&arg=-y&arg=%40angiejones%2Fmcp-selenium&id=selenium-mcp&name=Selenium%20MCP&description=automates%20browser%20interactions
+goose://extension?cmd=npx&arg=-y&arg=%40groxaxo%2Fmcp-selenium&id=selenium-mcp&name=Selenium%20MCP&description=automates%20browser%20interactions
 ```
 
 #### Option 2: Add manually to desktop or CLI
 
 * Name: `Selenium MCP`
 * Description: `automates browser interactions`
-* Command: `npx -y @angiejones/mcp-selenium`
+* Command: `npx -y @groxaxo/mcp-selenium`
 
 ### Use with Claude Desktop
 
@@ -97,7 +97,7 @@ Add to your Claude Desktop configuration:
   "mcpServers": {
     "selenium": {
       "command": "npx",
-      "args": ["-y", "@angiejones/mcp-selenium"]
+      "args": ["-y", "@groxaxo/mcp-selenium"]
     }
   }
 }
@@ -112,7 +112,7 @@ The same configuration pattern works with any MCP-compatible client:
   "mcpServers": {
     "selenium": {
       "command": "npx",
-      "args": ["-y", "@angiejones/mcp-selenium"]
+      "args": ["-y", "@groxaxo/mcp-selenium"]
     }
   }
 }

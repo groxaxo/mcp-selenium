@@ -11,8 +11,7 @@ RUN apk update && apk add --no-cache \
     ca-certificates \
     ttf-freefont \
     udev \
-    ttf-opensans \
-    chromium-chromedriver
+    ttf-opensans
 
 # Set Chrome environment variables
 ENV CHROME_BIN=/usr/bin/chromium-browser
