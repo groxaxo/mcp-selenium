@@ -1,16 +1,16 @@
-[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/angiejones-mcp-selenium-badge.png)](https://mseep.ai/app/angiejones-mcp-selenium)
-
 # MCP Selenium Server
 
-A Model Context Protocol (MCP) server implementation for Selenium WebDriver, enabling browser automation through standardized MCP clients.
+A Model Context Protocol (MCP) server implementation for Selenium WebDriver, enabling browser automation through standardized MCP clients. This enhanced version includes **memory and learning capabilities** that allow LLMs to record, remember, and replay browser automation workflows.
+
+> **Note**: This is a fork of [@angiejones/mcp-selenium](https://github.com/angiejones/mcp-selenium) with additional features for autonomous operation and persistent memory.
 
 ## Video Demo (Click to Watch)
 
 [![Watch the video](https://img.youtube.com/vi/mRV0N8hcgYA/sddefault.jpg)](https://youtu.be/mRV0N8hcgYA)
 
-
 ## Features
 
+### Core Browser Automation
 - Start browser sessions with customizable options
 - Navigate to URLs
 - Find elements using various locator strategies
@@ -20,36 +20,93 @@ A Model Context Protocol (MCP) server implementation for Selenium WebDriver, ena
 - Take screenshots
 - Upload files
 - Support for headless mode
-- **Memory & Learning** (NEW):
-  - Record action sequences and replay them later
-  - Save element mappings for sites
-  - User can teach the LLM new workflows by recording actions
-  - Interrupt running sequences at any time
-  - Persistent storage using SQLite
+
+### Memory & Learning
+- **Record & Replay**: Record action sequences and replay them later
+- **Element Mappings**: Save element locators for sites with friendly names
+- **Teachable Workflows**: Teach the LLM new workflows by recording actions
+- **Interruptible Sequences**: Stop running sequences at any time
+- **Persistent Storage**: All learned data is stored in SQLite (`~/.mcp-selenium/memory.db`)
+- **Variable Substitution**: Use `{{variableName}}` placeholders in sequences for dynamic values
 
 ## Supported Browsers
 
 - Chrome
 - Firefox
-- MS Edge
+- Microsoft Edge
 
-## Use with Goose
+---
 
-### Option 1: One-click install
-Copy and paste the link below into a browser address bar to add this extension to goose desktop:
+## Installation
+
+### Quick Start with NPX
+
+The easiest way to use MCP Selenium is with NPX, which requires no installation:
+
+```bash
+npx -y @angiejones/mcp-selenium
+```
+
+### Global Installation
+
+For faster startup and offline use, install globally:
+
+```bash
+npm install -g @angiejones/mcp-selenium
+```
+
+Then run:
+
+```bash
+mcp-selenium
+```
+
+### Installing via Smithery
+
+To install for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@angiejones/mcp-selenium):
+
+```bash
+npx -y @smithery/cli install @angiejones/mcp-selenium --client claude
+```
+
+---
+
+## Configuration
+
+### Use with Goose
+
+#### Option 1: One-click install
+Copy and paste the link below into a browser address bar to add this extension to Goose Desktop:
 
 ```
 goose://extension?cmd=npx&arg=-y&arg=%40angiejones%2Fmcp-selenium&id=selenium-mcp&name=Selenium%20MCP&description=automates%20browser%20interactions
 ```
 
-
-### Option 2: Add manually to desktop or CLI
+#### Option 2: Add manually to desktop or CLI
 
 * Name: `Selenium MCP`
 * Description: `automates browser interactions`
 * Command: `npx -y @angiejones/mcp-selenium`
 
-## Use with other MCP clients (e.g. Claude Desktop, etc)
+### Use with Claude Desktop
+
+Add to your Claude Desktop configuration:
+
+```json
+{
+  "mcpServers": {
+    "selenium": {
+      "command": "npx",
+      "args": ["-y", "@angiejones/mcp-selenium"]
+    }
+  }
+}
+```
+
+### Use with Other MCP Clients
+
+The same configuration pattern works with any MCP-compatible client:
+
 ```json
 {
   "mcpServers": {
@@ -65,63 +122,46 @@ goose://extension?cmd=npx&arg=-y&arg=%40angiejones%2Fmcp-selenium&id=selenium-mc
 
 ## Development
 
-To work on this project:
+To work on this project locally:
 
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Run the server: `npm start`
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/groxaxo/mcp-selenium.git
+   cd mcp-selenium
+   ```
 
-### Installation
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-#### Installing via Smithery
+3. Run the server:
+   ```bash
+   npm start
+   ```
 
-To install MCP Selenium for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@angiejones/mcp-selenium):
+### Using Docker
 
-```bash
-npx -y @smithery/cli install @angiejones/mcp-selenium --client claude
-```
-
-#### Manual Installation
-```bash
-npm install -g @angiejones/mcp-selenium
-```
-
-
-### Usage
-
-Start the server by running:
+Build and run with Docker:
 
 ```bash
-mcp-selenium
+docker build -t mcp-selenium .
+docker run mcp-selenium
 ```
 
-Or use with NPX in your MCP configuration:
-
-```json
-{
-  "mcpServers": {
-    "selenium": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@angiejones/mcp-selenium"
-      ]
-    }
-  }
-}
-```
-
-
+---
 
 ## Tools
 
-### start_browser
+### Browser Management
+
+#### start_browser
 Launches a browser session.
 
 **Parameters:**
 - `browser` (required): Browser to launch
   - Type: string
-  - Enum: ["chrome", "firefox"]
+  - Enum: `["chrome", "firefox", "edge"]`
 - `options`: Browser configuration options
   - Type: object
   - Properties:
@@ -144,7 +184,7 @@ Launches a browser session.
 }
 ```
 
-### navigate
+#### navigate
 Navigates to a URL.
 
 **Parameters:**
@@ -161,13 +201,30 @@ Navigates to a URL.
 }
 ```
 
-### find_element
+#### close_session
+Closes the current browser session and cleans up resources.
+
+**Parameters:** None required
+
+**Example:**
+```json
+{
+  "tool": "close_session",
+  "parameters": {}
+}
+```
+
+---
+
+### Element Interaction
+
+#### find_element
 Finds an element on the page.
 
 **Parameters:**
 - `by` (required): Locator strategy
   - Type: string
-  - Enum: ["id", "css", "xpath", "name", "tag", "class"]
+  - Enum: `["id", "css", "xpath", "name", "tag", "class"]`
 - `value` (required): Value for the locator strategy
   - Type: string
 - `timeout`: Maximum time to wait for element in milliseconds
@@ -186,13 +243,13 @@ Finds an element on the page.
 }
 ```
 
-### click_element
+#### click_element
 Clicks an element.
 
 **Parameters:**
 - `by` (required): Locator strategy
   - Type: string
-  - Enum: ["id", "css", "xpath", "name", "tag", "class"]
+  - Enum: `["id", "css", "xpath", "name", "tag", "class"]`
 - `value` (required): Value for the locator strategy
   - Type: string
 - `timeout`: Maximum time to wait for element in milliseconds
@@ -210,13 +267,13 @@ Clicks an element.
 }
 ```
 
-### send_keys
+#### send_keys
 Sends keys to an element (typing).
 
 **Parameters:**
 - `by` (required): Locator strategy
   - Type: string
-  - Enum: ["id", "css", "xpath", "name", "tag", "class"]
+  - Enum: `["id", "css", "xpath", "name", "tag", "class"]`
 - `value` (required): Value for the locator strategy
   - Type: string
 - `text` (required): Text to enter into the element
@@ -237,13 +294,13 @@ Sends keys to an element (typing).
 }
 ```
 
-### get_element_text
-Gets the text() of an element.
+#### get_element_text
+Gets the text content of an element.
 
 **Parameters:**
 - `by` (required): Locator strategy
   - Type: string
-  - Enum: ["id", "css", "xpath", "name", "tag", "class"]
+  - Enum: `["id", "css", "xpath", "name", "tag", "class"]`
 - `value` (required): Value for the locator strategy
   - Type: string
 - `timeout`: Maximum time to wait for element in milliseconds
@@ -261,13 +318,17 @@ Gets the text() of an element.
 }
 ```
 
-### hover
+---
+
+### Mouse Actions
+
+#### hover
 Moves the mouse to hover over an element.
 
 **Parameters:**
 - `by` (required): Locator strategy
   - Type: string
-  - Enum: ["id", "css", "xpath", "name", "tag", "class"]
+  - Enum: `["id", "css", "xpath", "name", "tag", "class"]`
 - `value` (required): Value for the locator strategy
   - Type: string
 - `timeout`: Maximum time to wait for element in milliseconds
@@ -285,18 +346,18 @@ Moves the mouse to hover over an element.
 }
 ```
 
-### drag_and_drop
+#### drag_and_drop
 Drags an element and drops it onto another element.
 
 **Parameters:**
 - `by` (required): Locator strategy for source element
   - Type: string
-  - Enum: ["id", "css", "xpath", "name", "tag", "class"]
+  - Enum: `["id", "css", "xpath", "name", "tag", "class"]`
 - `value` (required): Value for the source locator strategy
   - Type: string
 - `targetBy` (required): Locator strategy for target element
   - Type: string
-  - Enum: ["id", "css", "xpath", "name", "tag", "class"]
+  - Enum: `["id", "css", "xpath", "name", "tag", "class"]`
 - `targetValue` (required): Value for the target locator strategy
   - Type: string
 - `timeout`: Maximum time to wait for elements in milliseconds
@@ -316,13 +377,13 @@ Drags an element and drops it onto another element.
 }
 ```
 
-### double_click
+#### double_click
 Performs a double click on an element.
 
 **Parameters:**
 - `by` (required): Locator strategy
   - Type: string
-  - Enum: ["id", "css", "xpath", "name", "tag", "class"]
+  - Enum: `["id", "css", "xpath", "name", "tag", "class"]`
 - `value` (required): Value for the locator strategy
   - Type: string
 - `timeout`: Maximum time to wait for element in milliseconds
@@ -340,13 +401,13 @@ Performs a double click on an element.
 }
 ```
 
-### right_click
+#### right_click
 Performs a right click (context click) on an element.
 
 **Parameters:**
 - `by` (required): Locator strategy
   - Type: string
-  - Enum: ["id", "css", "xpath", "name", "tag", "class"]
+  - Enum: `["id", "css", "xpath", "name", "tag", "class"]`
 - `value` (required): Value for the locator strategy
   - Type: string
 - `timeout`: Maximum time to wait for element in milliseconds
@@ -364,7 +425,11 @@ Performs a right click (context click) on an element.
 }
 ```
 
-### press_key
+---
+
+### Keyboard Input
+
+#### press_key
 Simulates pressing a keyboard key.
 
 **Parameters:**
@@ -381,13 +446,17 @@ Simulates pressing a keyboard key.
 }
 ```
 
-### upload_file
+---
+
+### File Operations
+
+#### upload_file
 Uploads a file using a file input element.
 
 **Parameters:**
 - `by` (required): Locator strategy
   - Type: string
-  - Enum: ["id", "css", "xpath", "name", "tag", "class"]
+  - Enum: `["id", "css", "xpath", "name", "tag", "class"]`
 - `value` (required): Value for the locator strategy
   - Type: string
 - `filePath` (required): Absolute path to the file to upload
@@ -408,7 +477,7 @@ Uploads a file using a file input element.
 }
 ```
 
-### take_screenshot
+#### take_screenshot
 Captures a screenshot of the current page.
 
 **Parameters:**
@@ -425,27 +494,15 @@ Captures a screenshot of the current page.
 }
 ```
 
-### close_session
-Closes the current browser session and cleans up resources.
-
-**Parameters:**
-None required
-
-**Example:**
-```json
-{
-  "tool": "close_session",
-  "parameters": {}
-}
-```
-
 ---
 
 ## Memory & Learning Tools
 
 These tools enable the LLM to learn and remember action sequences that can be replayed later. The memory is persisted using SQLite, stored in `~/.mcp-selenium/memory.db`.
 
-### start_recording
+### Recording Sequences
+
+#### start_recording
 Starts recording actions to create a reusable sequence. Use this when teaching the system a new workflow.
 
 **Parameters:**
@@ -468,11 +525,10 @@ Starts recording actions to create a reusable sequence. Use this when teaching t
 }
 ```
 
-### stop_recording
+#### stop_recording
 Stops recording actions and saves the sequence to memory for future use.
 
-**Parameters:**
-None required
+**Parameters:** None required
 
 **Example:**
 ```json
@@ -482,13 +538,19 @@ None required
 }
 ```
 
-### cancel_recording
+#### cancel_recording
 Cancels the current recording without saving the sequence.
 
-**Parameters:**
-None required
+**Parameters:** None required
 
-### save_sequence
+#### get_recording_status
+Gets the current recording status and recorded actions.
+
+**Parameters:** None required
+
+### Sequence Management
+
+#### save_sequence
 Saves a predefined sequence of actions to memory programmatically.
 
 **Parameters:**
@@ -518,34 +580,35 @@ Saves a predefined sequence of actions to memory programmatically.
 }
 ```
 
-### list_sequences
+#### list_sequences
 Lists all saved action sequences available for execution.
 
-**Parameters:**
-None required
+**Parameters:** None required
 
-### get_sequence
+#### get_sequence
 Gets the details of a saved sequence including all its actions.
 
 **Parameters:**
 - `name` (required): Name of the sequence to retrieve
   - Type: string
 
-### search_sequences
+#### search_sequences
 Searches for saved sequences by name, description, or trigger pattern.
 
 **Parameters:**
 - `query` (required): Search query to find matching sequences
   - Type: string
 
-### delete_sequence
+#### delete_sequence
 Deletes a saved sequence from memory.
 
 **Parameters:**
 - `name` (required): Name of the sequence to delete
   - Type: string
 
-### run_sequence
+### Executing Sequences
+
+#### run_sequence
 Executes a saved sequence of actions autonomously. The sequence can be interrupted using `interrupt_sequence`.
 
 **Parameters:**
@@ -567,13 +630,14 @@ Executes a saved sequence of actions autonomously. The sequence can be interrupt
 }
 ```
 
-### interrupt_sequence
+#### interrupt_sequence
 Interrupts the currently running sequence. The sequence will stop after completing the current action.
 
-**Parameters:**
-None required
+**Parameters:** None required
 
-### save_element
+### Element Mappings
+
+#### save_element
 Saves an element mapping for a site, allowing you to reference elements by friendly names.
 
 **Parameters:**
@@ -583,7 +647,7 @@ Saves an element mapping for a site, allowing you to reference elements by frien
   - Type: string
 - `by` (required): Locator strategy
   - Type: string
-  - Enum: ["id", "css", "xpath", "name", "tag", "class"]
+  - Enum: `["id", "css", "xpath", "name", "tag", "class"]`
 - `value` (required): Locator value
   - Type: string
 - `description` (optional): Description of the element
@@ -603,14 +667,14 @@ Saves an element mapping for a site, allowing you to reference elements by frien
 }
 ```
 
-### get_elements
+#### get_elements
 Gets all saved element mappings for the current page or a specified URL.
 
 **Parameters:**
 - `url` (optional): URL to get elements for. If not provided, uses current page URL.
   - Type: string
 
-### click_saved_element
+#### click_saved_element
 Clicks an element using a previously saved element name.
 
 **Parameters:**
@@ -620,7 +684,7 @@ Clicks an element using a previously saved element name.
   - Type: number
   - Default: 10000
 
-### type_in_saved_element
+#### type_in_saved_element
 Types text into an element using a previously saved element name.
 
 **Parameters:**
@@ -632,7 +696,9 @@ Types text into an element using a previously saved element name.
   - Type: number
   - Default: 10000
 
-### get_execution_history
+### Execution History
+
+#### get_execution_history
 Gets the history of executed actions and sequences.
 
 **Parameters:**
@@ -640,13 +706,24 @@ Gets the history of executed actions and sequences.
   - Type: number
   - Default: 50
 
-### get_recording_status
-Gets the current recording status and recorded actions.
+---
 
-**Parameters:**
-None required
+## Resources
 
+The server provides the following MCP resources for monitoring:
+
+- `browser-status://current` - Current browser session status
+- `memory-status://current` - Memory store status (sequences, recording state)
+- `sequences-list://all` - List of all saved sequences
+
+---
 
 ## License
 
 MIT
+
+---
+
+## Credits
+
+Based on the original [mcp-selenium](https://github.com/angiejones/mcp-selenium) by [Angie Jones](https://github.com/angiejones).
